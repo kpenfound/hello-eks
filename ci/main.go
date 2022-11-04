@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	publishAddress = "registry.digitalocean.com/hello-doks/hello:latest"
+	publishAddress = "kylepenfound/hello-eks:latest"
 	doksCluster    = "mycluster"
 	doksNamespace  = "mynamespace"
 	doksDeployment = "mypod-deployment"
@@ -63,7 +63,7 @@ func main() {
 
 	fmt.Println(addr)
 
-	_ = deploy(ctx, addr)
+	//_ = deploy(ctx, addr)
 }
 
 func deploy(ctx context.Context, imageref string) error {
