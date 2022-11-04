@@ -53,19 +53,18 @@ func main() {
 	build := builder.File("/src/hello")
 
 	// Publish binary on Alpine base
-	_ = client.Container().
+	addr, err := client.Container().
 		From("alpine").
 		WithMountedFile("/tmp/hello", build).
 		Exec(dagger.ContainerExecOpts{
 			Args: []string{"cp", "/tmp/hello", "/bin/hello"},
 		}).
-		WithEntrypoint([]string{"/bin/hello"}) //.
-		//Publish(ctx, publishAddress)
-	// if err != nil {
-	// 	panic(err)
-	// }
+		WithEntrypoint([]string{"/bin/hello"}).
+		Publish(ctx, publishAddress)
+	if err != nil {
+		panic(err)
+	}
 
-	addr := "docker.io/kylepenfound/hello-eks:latest@sha256:1ab30ec999e3e68edc03dc08c27794d177438b919fa03d797f64f67ab9c0164b"
 	fmt.Println(addr)
 	err = deploy(ctx, addr)
 	if err != nil {
