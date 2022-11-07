@@ -17,17 +17,12 @@ import (
 	"sigs.k8s.io/aws-iam-authenticator/pkg/token"
 )
 
-const (
-	publishAddress = "kylepenfound/hello-eks:latest"
-	eksCluster     = "hello-eks"
-	eksNamespace   = "hello-eks"
-	eksDeployment  = "hello-eks"
-	eksService     = "hello-eks"
-	awsRegion      = "us-east-1"
-)
+var platformToArch = map[dagger.Platform]string{
+	"linux/amd64": "amd64",
+	"linux/arm64": "arm64",
+}
 
 func main() {
-	// Create dagger client
 	ctx := context.Background()
 	client, err := dagger.Connect(ctx, dagger.WithLogOutput(os.Stdout))
 	if err != nil {
@@ -35,32 +30,41 @@ func main() {
 	}
 	defer client.Close()
 
-	// Build our app
+	// get project dir
 	project := client.Host().Workdir()
 
-	builder := client.Container().
-		From("golang:latest").
-		WithMountedDirectory("/src", project).
-		WithWorkdir("/src").
-		WithEnvVariable("GOOS", "linux").
-		WithEnvVariable("GOARCH", "amd64").
-		WithEnvVariable("CGO_ENABLED", "0").
-		Exec(dagger.ContainerExecOpts{
-			Args: []string{"go", "build", "-o", "hello"},
+	variants := make([]*dagger.Container, 0, len(platformToArch))
+	for platform, arch := range platformToArch {
+		// assemble golang build
+		builder := client.Container().
+			From("golang:latest").
+			WithMountedDirectory("/src", project).
+			WithWorkdir("/src").
+			WithEnvVariable("CGO_ENABLED", "0").
+			WithEnvVariable("GOOS", "linux").
+			WithEnvVariable("GOARCH", arch).
+			Exec(dagger.ContainerExecOpts{
+				Args: []string{"go", "build", "-o", "hello"},
+			})
+
+		// Build container on production base with build artifact
+		base := client.Container(dagger.ContainerOpts{Platform: platform}).
+			From("alpine")
+		// copy build artifact from builder image
+		base = base.WithFS(
+			base.FS().WithFile("/bin/hello",
+				builder.File("/src/hello"),
+			)).
+			WithEntrypoint([]string{"/bin/hello"})
+		// add built container to container variants
+		variants = append(variants, base)
+	}
+	addr, err := client.Container().Publish(
+		ctx,
+		"public.ecr.aws/t5t3s6c1/hello:latest",
+		dagger.ContainerPublishOpts{
+			PlatformVariants: variants,
 		})
-
-	// Get built binary
-	build := builder.File("/src/hello")
-
-	// Publish binary on Alpine base
-	addr, err := client.Container().
-		From("alpine").
-		WithMountedFile("/tmp/hello", build).
-		Exec(dagger.ContainerExecOpts{
-			Args: []string{"cp", "/tmp/hello", "/bin/hello"},
-		}).
-		WithEntrypoint([]string{"/bin/hello"}).
-		Publish(ctx, publishAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +74,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error deploying hello-eks: %v", err)
 	}
-	fmt.Printf("Updated %s deployment\n", eksDeployment)
+	fmt.Println("Updated hello-eks deployment")
 }
 
 func deploy(ctx context.Context, imageref string) error {
@@ -87,7 +91,7 @@ func rollingDeployment(ctx context.Context, clientset *kubernetes.Clientset, ima
 	deployments := clientset.AppsV1().Deployments("default")
 
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		result, err := deployments.Get(ctx, eksDeployment, metav1.GetOptions{})
+		result, err := deployments.Get(ctx, "hello-eks", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -102,13 +106,13 @@ func rollingDeployment(ctx context.Context, clientset *kubernetes.Clientset, ima
 func getKubeClient(ctx context.Context) (*kubernetes.Clientset, error) {
 	// Get EKS service
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(awsRegion),
+		Region: aws.String("us-east-1"),
 	}))
 	eksSvc := eks.New(sess)
 
 	// Get cluster
 	input := &eks.DescribeClusterInput{
-		Name: aws.String(eksCluster),
+		Name: aws.String("hello-eks"),
 	}
 	cluster, err := eksSvc.DescribeCluster(input)
 	if err != nil {

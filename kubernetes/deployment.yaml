@@ -21,7 +21,7 @@ spec:
         app: hello-eks
     spec:
       containers:
-      - image: kylepenfound/hello-eks:latest
+      - image: public.ecr.aws/t5t3s6c1/hello:latest
         imagePullPolicy: Always
         name: hello-eks
         ports:
