@@ -61,7 +61,7 @@ func main() {
 	}
 	addr, err := client.Container().Publish(
 		ctx,
-		"public.ecr.aws/t5t3s6c1/hello:latest",
+		"public.ecr.aws/t5t3s6c1/hello:dev",
 		dagger.ContainerPublishOpts{
 			PlatformVariants: variants,
 		})
