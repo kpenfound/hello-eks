@@ -31,7 +31,7 @@ func main() {
 	defer client.Close()
 
 	// get project dir
-	project := client.Host().Workdir()
+	project := client.Host().Directory(".")
 
 	variants := make([]*dagger.Container, 0, len(platformToArch))
 	for platform, arch := range platformToArch {
@@ -43,16 +43,14 @@ func main() {
 			WithEnvVariable("CGO_ENABLED", "0").
 			WithEnvVariable("GOOS", "linux").
 			WithEnvVariable("GOARCH", arch).
-			Exec(dagger.ContainerExecOpts{
-				Args: []string{"go", "build", "-o", "hello"},
-			})
+			WithExec([]string{"go", "build", "-o", "hello"})
 
 		// Build container on production base with build artifact
 		base := client.Container(dagger.ContainerOpts{Platform: platform}).
 			From("alpine")
 		// copy build artifact from builder image
-		base = base.WithFS(
-			base.FS().WithFile("/bin/hello",
+		base = base.WithRootfs(
+			base.Rootfs().WithFile("/bin/hello",
 				builder.File("/src/hello"),
 			)).
 			WithEntrypoint([]string{"/bin/hello"})
