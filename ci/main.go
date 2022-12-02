@@ -47,12 +47,8 @@ func main() {
 
 		// Build container on production base with build artifact
 		base := client.Container(dagger.ContainerOpts{Platform: platform}).
-			From("alpine")
-		// copy build artifact from builder image
-		base = base.WithRootfs(
-			base.Rootfs().WithFile("/bin/hello",
-				builder.File("/src/hello"),
-			)).
+			From("alpine").
+			WithFile("/bin/hello", builder.File("/src/hello")).
 			WithEntrypoint([]string{"/bin/hello"})
 		// add built container to container variants
 		variants = append(variants, base)

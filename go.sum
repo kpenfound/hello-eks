@@ -20,8 +20,8 @@ cloud.google.com/go/pubsub v1.2.0/go.mod h1:jhfEVHT8odbXTkndysNHCcx0awwzvfOlguIA
 cloud.google.com/go/storage v1.0.0/go.mod h1:IhtSnM/ZTZV8YYJWCY8RULGVqBDmpoyjwiyrjsg+URw=
 cloud.google.com/go/storage v1.5.0/go.mod h1:tpKbwo567HUNpVclU5sGELwQWBDZ8gh0ZeosJ0Rtdos=
 cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohlUTyfDhBk=
-dagger.io/dagger v0.4.1 h1:aMdARz/5bDh3Jc7dHmGdjsHIidJj0rVnIdKgQPkHbdU=
-dagger.io/dagger v0.4.1/go.mod h1:sW7eoYNclrZTSZE+2XJATAob1MdG80kqjgV4xbPet0Q=
+dagger.io/dagger v0.4.2 h1:K8M+4ZlQyEBf1980yFHbmeS++XvSsGu+R2zx8hdTDD8=
+dagger.io/dagger v0.4.2/go.mod h1:sW7eoYNclrZTSZE+2XJATAob1MdG80kqjgV4xbPet0Q=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/99designs/gqlgen v0.17.2/go.mod h1:K5fzLKwtph+FFgh9j7nFbRUdBKvTcGnsta51fsMTn3o=
 github.com/Azure/go-autorest v11.1.2+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
